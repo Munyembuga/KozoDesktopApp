@@ -1,0 +1,84 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Projrct in Flutter\\smart_server\\kozo\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Projrct in Flutter\\smart_server\\kozo\\lib\\cashierScreens\\orders\\order_partialPayment_detail_screen.dart||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\cashierScreens\\orders\\order_partialPayment_detail_screen.dart||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Projrct in Flutter\\smart_server\\kozo\\lib\\screens\\Copy_servered_order_details.dart||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\screens\\Copy_servered_order_details.dart||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Projrct in Flutter\\smart_server\\kozo\\lib\\screens\\ACserved_order_detail.dart||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\screens\\ACserved_order_detail.dart||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Projrct in Flutter\\smart_server\\kozo\\assets\\app_icon.png||{58961B49-13E0-48C0-9258-13CBC4D40279}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:assets\\app_icon.png||{58961B49-13E0-48C0-9258-13CBC4D40279}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "order_partialPayment_detail_screen.dart",
+              "DocumentMoniker": "D:\\Projrct in Flutter\\smart_server\\kozo\\lib\\cashierScreens\\orders\\order_partialPayment_detail_screen.dart",
+              "RelativeDocumentMoniker": "lib\\cashierScreens\\orders\\order_partialPayment_detail_screen.dart",
+              "ToolTip": "D:\\Projrct in Flutter\\smart_server\\kozo\\lib\\cashierScreens\\orders\\order_partialPayment_detail_screen.dart",
+              "RelativeToolTip": "lib\\cashierScreens\\orders\\order_partialPayment_detail_screen.dart",
+              "ViewState": "AgIAABEBAAAAAAAAAAAAABcBAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-09-30T08:09:18.472Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Copy_servered_order_details.dart",
+              "DocumentMoniker": "D:\\Projrct in Flutter\\smart_server\\kozo\\lib\\screens\\Copy_servered_order_details.dart",
+              "RelativeDocumentMoniker": "lib\\screens\\Copy_servered_order_details.dart",
+              "ToolTip": "D:\\Projrct in Flutter\\smart_server\\kozo\\lib\\screens\\Copy_servered_order_details.dart",
+              "RelativeToolTip": "lib\\screens\\Copy_servered_order_details.dart",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-09-30T08:09:05.797Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ACserved_order_detail.dart",
+              "DocumentMoniker": "D:\\Projrct in Flutter\\smart_server\\kozo\\lib\\screens\\ACserved_order_detail.dart",
+              "RelativeDocumentMoniker": "lib\\screens\\ACserved_order_detail.dart",
+              "ToolTip": "D:\\Projrct in Flutter\\smart_server\\kozo\\lib\\screens\\ACserved_order_detail.dart",
+              "RelativeToolTip": "lib\\screens\\ACserved_order_detail.dart",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-09-30T08:09:01.377Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "app_icon.png",
+              "DocumentMoniker": "D:\\Projrct in Flutter\\smart_server\\kozo\\assets\\app_icon.png",
+              "RelativeDocumentMoniker": "assets\\app_icon.png",
+              "ToolTip": "D:\\Projrct in Flutter\\smart_server\\kozo\\assets\\app_icon.png",
+              "RelativeToolTip": "assets\\app_icon.png",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001533|",
+              "WhenOpened": "2025-09-30T08:08:44.293Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

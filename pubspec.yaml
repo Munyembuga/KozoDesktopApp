@@ -1,0 +1,42 @@
+name: kozo
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  http: ^1.1.0  # For API requests
+  shared_preferences: ^2.2.2
+  dio: ^5.3.2  # For API requests
+  pdf: ^3.10.4
+  printing: ^5.11.0
+  intl: ^0.18.1  # For date formatting
+  dropdown_search: ^6.0.2
+  virtual_keyboard_multi_language: ^1.1.2
+  path_provider: ^2.1.5
+  share_plus: ^12.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+  flutter_lints: ^5.0.0
+  msix: ^3.14.0
+
+flutter:
+
+  uses-material-design: true
+  assets:
+    - assets/logo.png
+    - assets/logo1.png
+    - assets/
