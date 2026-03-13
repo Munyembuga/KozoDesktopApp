@@ -19,6 +19,7 @@ class CartWidget extends StatelessWidget {
   final SpecialClient? selectedClient;
   final Waiter? selectedWaiter;
   final TableModel? selectedTable;
+  final String covers;
   final bool isLoadingWaiters;
   final bool isLoadingTables;
   final List<ClientDiscount> clientDiscounts;
@@ -28,6 +29,7 @@ class CartWidget extends StatelessWidget {
   final Function(Waiter?) onWaiterChanged;
   final Function(TableModel?) onTableChanged;
   final Function(SpecialClient?) onClientChanged;
+  final Function(String) onCoversChanged;
   final Function(int, int, String) onUpdateItemComment;
   final Function(int, int, int) onUpdateItemPrepOrder;
   final Function(int, int, int?) onUpdateItemPressure; // Add pressure callback
@@ -45,6 +47,7 @@ class CartWidget extends StatelessWidget {
     required this.selectedClient,
     required this.selectedWaiter,
     required this.selectedTable,
+    required this.covers,
     required this.isLoadingWaiters,
     required this.isLoadingTables,
     required this.clientDiscounts,
@@ -54,6 +57,7 @@ class CartWidget extends StatelessWidget {
     required this.onWaiterChanged,
     required this.onTableChanged,
     required this.onClientChanged,
+    required this.onCoversChanged,
     required this.onUpdateItemComment,
     required this.onUpdateItemPrepOrder,
     required this.onUpdateItemPressure, // Add pressure callback
@@ -959,118 +963,59 @@ class CartWidget extends StatelessWidget {
                                                           CircularProgressIndicator(
                                                               strokeWidth: 2),
                                                     )
-                                                  : DropdownSearch<Waiter>(
-                                                      selectedItem:
-                                                          selectedWaiter,
-                                                      items: (filter,
-                                                          infiniteScrollProps) {
-                                                        final defaultWaiter =
-                                                            Waiter(
-                                                                id: -1,
-                                                                name:
-                                                                    '(Self-handled)');
-                                                        return [
-                                                          defaultWaiter,
-                                                          ...waiters
-                                                        ];
-                                                      },
-                                                      itemAsString:
-                                                          (Waiter waiter) =>
-                                                              waiter.name,
-                                                      compareFn: (Waiter? a,
-                                                              Waiter? b) =>
-                                                          a?.id == b?.id,
-                                                      decoratorProps:
-                                                          DropDownDecoratorProps(
+                                                  : InkWell(
+                                                      onTap: () =>
+                                                          _showWaiterSelectionDialog(
+                                                              context,
+                                                              waiters,
+                                                              selectedWaiter,
+                                                              onWaiterChanged),
+                                                      child: Container(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 12,
+                                                                vertical: 12),
                                                         decoration:
-                                                            InputDecoration(
-                                                          labelText:
-                                                              'Select Waiter',
-                                                          border:
-                                                              OutlineInputBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        8),
-                                                          ),
-                                                          contentPadding:
-                                                              const EdgeInsets
-                                                                  .symmetric(
-                                                                  horizontal:
-                                                                      12,
-                                                                  vertical: 8),
-                                                        ),
-                                                      ),
-                                                      popupProps:
-                                                          PopupProps.menu(
-                                                        showSearchBox: true,
-                                                        showSelectedItems: true,
-                                                        scrollbarProps:
-                                                            ScrollbarProps(
-                                                          thickness: 50,
-                                                          radius:
-                                                              Radius.circular(
-                                                                  10),
-                                                          thumbVisibility: true,
-                                                          trackVisibility: true,
-                                                        ),
-                                                        searchFieldProps:
-                                                            TextFieldProps(
-                                                          decoration:
-                                                              InputDecoration(
-                                                            hintText:
-                                                                'Search waiters...',
-                                                            prefixIcon: Icon(
-                                                                Icons.search),
-                                                            border:
-                                                                OutlineInputBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          8),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        menuProps: MenuProps(
+                                                            BoxDecoration(
+                                                          color: Colors.white,
                                                           borderRadius:
                                                               BorderRadius
                                                                   .circular(8),
-                                                          elevation: 2,
+                                                          border: Border.all(
+                                                              color: Colors
+                                                                  .grey[400]!),
                                                         ),
-                                                        itemBuilder: (context,
-                                                            item,
-                                                            isDisabled,
-                                                            isSelected) {
-                                                          return Container(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .symmetric(
-                                                                    horizontal:
-                                                                        16,
-                                                                    vertical:
-                                                                        12),
-                                                            child: Text(
-                                                              item.name,
-                                                              style: TextStyle(
-                                                                fontWeight: isSelected
-                                                                    ? FontWeight
-                                                                        .bold
-                                                                    : FontWeight
-                                                                        .normal,
+                                                        child: Row(
+                                                          children: [
+                                                            Expanded(
+                                                              child: Text(
+                                                                selectedWaiter
+                                                                        ?.name ??
+                                                                    'Select Waiter',
+                                                                style:
+                                                                    TextStyle(
+                                                                  color: selectedWaiter !=
+                                                                          null
+                                                                      ? Colors
+                                                                          .black
+                                                                      : Colors.grey[
+                                                                          600],
+                                                                  fontSize: 14,
+                                                                ),
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
                                                               ),
                                                             ),
-                                                          );
-                                                        },
+                                                            Icon(
+                                                                Icons
+                                                                    .arrow_drop_down,
+                                                                color: Colors
+                                                                    .grey[600]),
+                                                          ],
+                                                        ),
                                                       ),
-                                                      onChanged:
-                                                          onWaiterChanged,
-                                                      validator:
-                                                          (Waiter? value) {
-                                                        if (value == null) {
-                                                          return 'Please select a waiter';
-                                                        }
-                                                        return null;
-                                                      },
                                                     ),
                                             ],
                                           ),
@@ -1257,6 +1202,58 @@ class CartWidget extends StatelessWidget {
                                           ),
                                         ),
                                       ),
+
+                                      // Covers Section
+                                      Expanded(
+                                        flex: 1,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          margin:
+                                              const EdgeInsets.only(left: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange[50],
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                                color: Colors.orange[200]!),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                'Covers',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                  color: Colors.orange,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              TextFormField(
+                                                initialValue: covers,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                decoration: InputDecoration(
+                                                  labelText: 'Enter covers',
+                                                  hintText: 'e.g. 4',
+                                                  border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  contentPadding:
+                                                      const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 12,
+                                                          vertical: 8),
+                                                ),
+                                                onChanged: onCoversChanged,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
 
@@ -1375,6 +1372,86 @@ class CartWidget extends StatelessWidget {
             onUpdateItemPressure(
                 cartItem.id, cartItem.specificationId ?? 0, pressureId);
           },
+        );
+      },
+    );
+  }
+
+  void _showWaiterSelectionDialog(BuildContext context, List<Waiter> waiters,
+      Waiter? selectedWaiter, Function(Waiter?) onWaiterChanged) {
+    // Create a list with the default waiter option
+    final allWaiters = [
+      Waiter(id: -1, name: '(Self-handled)'),
+      ...waiters,
+    ];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        final ScrollController waiterScrollController = ScrollController();
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.person, color: Colors.blue[700]),
+              const SizedBox(width: 8),
+              const Text('Select Waiter'),
+            ],
+          ),
+          content: SizedBox(
+            width: 320,
+            height: 400,
+            child: Scrollbar(
+              controller: waiterScrollController,
+              thumbVisibility: true,
+              trackVisibility: true,
+              thickness: 12.0,
+              radius: const Radius.circular(6),
+              child: ListView.builder(
+                controller: waiterScrollController,
+                padding: const EdgeInsets.only(right: 20),
+                itemCount: allWaiters.length,
+                itemBuilder: (context, index) {
+                  final waiter = allWaiters[index];
+                  final isSelected = selectedWaiter?.id == waiter.id;
+
+                  return Card(
+                    color: isSelected ? Colors.blue[100] : null,
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor:
+                            isSelected ? Colors.blue[700] : Colors.grey[300],
+                        child: Icon(
+                          waiter.id == -1 ? Icons.person_off : Icons.person,
+                          color: isSelected ? Colors.white : Colors.grey[600],
+                        ),
+                      ),
+                      title: Text(
+                        waiter.name,
+                        style: TextStyle(
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? Colors.blue[700] : Colors.black,
+                        ),
+                      ),
+                      trailing: isSelected
+                          ? Icon(Icons.check_circle, color: Colors.blue[700])
+                          : null,
+                      onTap: () {
+                        onWaiterChanged(waiter);
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
         );
       },
     );

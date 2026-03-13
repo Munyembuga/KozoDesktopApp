@@ -819,6 +819,7 @@ class WaiterOrderServices {
     required int? tableId,
     String? orderType,
     String? orderNotes,
+    String? covers,
     required List<Map<String, dynamic>> items,
   }) async {
     try {
@@ -833,6 +834,7 @@ class WaiterOrderServices {
         'orderNotes': orderNotes ?? '',
         'waiterId': currentUser.id.toString(),
         'items': items,
+        'covers': covers ?? '',
       };
 
       print('🔍 Processing order with requestwwwwwwww: $requestData');

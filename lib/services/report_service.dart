@@ -67,15 +67,23 @@ class ReportService {
     String paymentMethodFilter = "",
   }) async {
     try {
+      final requestData = {
+        "cashierId": cashierId,
+        "dateTimeFrom": dateTimeFrom,
+        "dateTimeTo": dateTimeTo,
+        "paymentMethodFilter": paymentMethodFilter
+      };
+
+      print("Request URL: $_baseUrl/getCashierPaymentMethodsBreakdown");
+      print("Request Body: $requestData");
+
       final response = await _dio.post(
         '$_baseUrl/getCashierPaymentMethodsBreakdown',
-        data: {
-          "cashierId": cashierId,
-          "dateTimeFrom": dateTimeFrom,
-          "dateTimeTo": dateTimeTo,
-          "paymentMethodFilter": paymentMethodFilter
-        },
+        data: requestData,
       );
+
+      print("Response status: ${response.statusCode}");
+      print("Response data: ${response.data}");
 
       if (response.statusCode == 200) {
         final data = response.data;

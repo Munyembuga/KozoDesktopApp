@@ -748,11 +748,19 @@ class _CompletedOrderDetailScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(
-              'Table', '${order.tableNumber} (${order.tableLocation})'),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInfoRow(
+                    'Table', '${order.tableNumber} (${order.tableLocation})'),
+              ),
+              if (order.covers != null)
+                Expanded(
+                  child: _buildInfoRow('Covers', order.covers.toString()),
+                ),
+            ],
+          ),
           _buildInfoRow('Waiter', order.waiterName),
-          if (order.covers != null)
-            _buildInfoRow('Covers', order.covers.toString()),
           // _buildInfoRow('Order Type', order.orderType.toUpperCase()),
           // _buildInfoRow('Status', order.status.toUpperCase()),
 

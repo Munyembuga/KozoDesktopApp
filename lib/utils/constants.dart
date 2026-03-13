@@ -10,7 +10,6 @@ class AppConfig {
 //   static const String baseUrl = "https://newkozo.x10.mx/API_KOZO";
 // }
 
-
 // Printer names - updated to match actual printer names
 class PrinterNames {
   static const String kitchen = "KITCHEN";

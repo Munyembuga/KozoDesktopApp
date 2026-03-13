@@ -173,6 +173,8 @@ class BarReceiptService {
         _buildBarInfoRow('Order:', orderDetail.orderNumber),
 
         _buildBarInfoRow('Waiter:', orderDetail.waiterName),
+        if (orderDetail.covers != null)
+          _buildBarInfoRow('Covers:', orderDetail.covers.toString()),
         // Printer name (when known) shown under waiter name
         if (printerName != null) _buildBarInfoRow('Printer:', printerName),
         if (orderDetail.clientName != null)
@@ -347,7 +349,7 @@ class BarReceiptService {
   static pw.Widget _buildDivider() {
     return pw.Text(
       '----------------------------------------------------',
-      style: pw.TextStyle(fontSize: 8, color: PdfColors.blue),
+      style: pw.TextStyle(fontSize: 8),
     );
   }
 

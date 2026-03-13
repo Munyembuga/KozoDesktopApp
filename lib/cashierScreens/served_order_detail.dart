@@ -2385,6 +2385,8 @@ class _ServedOrderDetailScreenState extends State<ServedOrderDetailScreen> {
           _buildInfoRow(
               'Table', '${order.tableNumber} (${order.tableLocation})'),
           _buildInfoRow('Waiter', order.waiterName),
+          if (order.covers != null)
+            _buildInfoRow('Covers', order.covers.toString()),
           if (order.clientName != null)
             _buildInfoRow('Client', order.clientName!),
           const Divider(),

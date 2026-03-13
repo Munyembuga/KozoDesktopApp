@@ -551,12 +551,14 @@ class _LoginScreenState extends State<LoginScreen> {
           debugPrint('Location: ${user.location}');
           debugPrint('Telephone: ${user.telephone}');
           debugPrint('TIN: ${user.tinNumber}');
-          debugPrint('Payment codes: ${user.paymentCodes.map((p) => '${p.name}:${p.code}').join(', ')}');
+          debugPrint(
+              'Payment codes: ${user.paymentCodes.map((p) => '${p.name}:${p.code}').join(', ')}');
 
           // Optional second snackbar with company name
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Welcome ${user.fullName} - ${user.companyName ?? ''}'),
+              content:
+                  Text('Welcome ${user.fullName} - ${user.companyName ?? ''}'),
               backgroundColor: Colors.blueGrey,
               duration: const Duration(seconds: 2),
             ),
@@ -564,7 +566,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
           Future.delayed(const Duration(milliseconds: 500), () {
             if (!mounted) return;
-            if (userRole == 'waiter') {
+            // Navigate based on dashboard_access: 1 = Cashier, 2 = Waiter
+            if (user.dashboardAccess == 2) {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -579,17 +582,29 @@ class _LoginScreenState extends State<LoginScreen> {
             }
           });
         } else {
-          // Show login error with shake animation
+          // Show login error in dialog
           _pinController.clear(); // Clear PIN on error
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Login failed'),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              margin: const EdgeInsets.all(10),
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 28),
+                  SizedBox(width: 10),
+                  Text('Login Failed'),
+                ],
+              ),
+              content: Text(
+                result['message'] ?? 'Login failed',
+                style: const TextStyle(fontSize: 16),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
             ),
           );
         }
@@ -602,14 +617,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
         _pinController.clear(); // Clear PIN on error
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Login error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            margin: const EdgeInsets.all(10),
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red, size: 28),
+                SizedBox(width: 10),
+                Text('Error'),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: Text(
+                'Login error: ${e.toString()}',
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
           ),
         );
       }

@@ -48,6 +48,9 @@ class _WaitermakeneworderState extends State<Waitermakeneworder> {
   String _selectedOrderType = 'dine_in'; // Default to dine_in
   String _orderNotes = '';
 
+  // Covers for the order
+  String _covers = '';
+
   // Search functionality variables
   bool _isSearching = false;
   bool _isLoadingSearch = false;
@@ -344,7 +347,7 @@ class _WaitermakeneworderState extends State<Waitermakeneworder> {
     }
 
     // Check if all cart items have prices (specifications selected)
-    bool hasItemsWithoutPrice = _cartItems.any((item) => item.price <= 0);
+    bool hasItemsWithoutPrice = _cartItems.any((item) => item.price < 0);
     if (hasItemsWithoutPrice) {
       _showErrorSnackBar(
           'Some items do not have specifications selected. Please select specifications for all items.');
@@ -431,6 +434,7 @@ class _WaitermakeneworderState extends State<Waitermakeneworder> {
         'order_type': _selectedOrderType,
         'order_notes': _orderNotes,
         'order_date_time': formattedOrderDateTime,
+        'covers': _covers,
         'items': orderItems,
       };
       print('========== WAITER ORDER REQUEST (JSON) ==========');
@@ -442,6 +446,7 @@ class _WaitermakeneworderState extends State<Waitermakeneworder> {
         tableId: _selectedTable!.id,
         orderType: _selectedOrderType,
         orderNotes: _orderNotes,
+        covers: _covers,
         items: orderItems,
       );
 
@@ -547,6 +552,7 @@ class _WaitermakeneworderState extends State<Waitermakeneworder> {
       _loadingSpecifications.clear();
       _selectedOrderType = 'dine_in';
       _orderNotes = '';
+      _covers = '';
       _orderNotesController.clear();
       _selectedDate = DateTime.now();
       _selectedTime = TimeOfDay.now();
@@ -1180,6 +1186,7 @@ class _WaitermakeneworderState extends State<Waitermakeneworder> {
                 cartItems: _cartItems,
                 tables: _tables,
                 selectedTable: _selectedTable,
+                covers: _covers,
                 isLoadingTables: _isLoadingTables,
                 itemSpecifications: _itemSpecifications,
                 onRemoveFromCart: _removeFromCart,
@@ -1210,6 +1217,11 @@ class _WaitermakeneworderState extends State<Waitermakeneworder> {
                 onTableChanged: (TableModel? newValue) {
                   setState(() {
                     _selectedTable = newValue;
+                  });
+                },
+                onCoversChanged: (String newValue) {
+                  setState(() {
+                    _covers = newValue;
                   });
                 },
                 onProcessOrder: _processOrder,

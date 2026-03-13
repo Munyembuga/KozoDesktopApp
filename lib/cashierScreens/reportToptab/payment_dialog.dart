@@ -29,7 +29,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
   final TextEditingController _coversController = TextEditingController();
   final TextEditingController _discountController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _referenceController = TextEditingController();
+  final TextEditingController _commentController = TextEditingController();
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -102,7 +102,10 @@ class _PaymentDialogState extends State<PaymentDialog> {
 
   // Define helper getters for required logic
   bool get _requiresCustomerName =>
-      _selectedPaymentMethod?.id == 13 || _selectedPaymentMethod?.id == 14;
+      _selectedPaymentMethod?.id == 13 ||
+      _selectedPaymentMethod?.id == 14 ||
+      _selectedPaymentMethod?.id == 18 ||
+      _selectedPaymentMethod?.id == 19;
   bool get _isDepositPayment => _selectedPaymentMethod?.id == 15;
 
   Future<void> _fetchDepositClients(String searchTerm) async {
@@ -169,7 +172,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
     _coversController.dispose();
     _discountController.dispose();
     _amountController.dispose();
-    _referenceController.dispose();
+    _commentController.dispose();
     _customerNameController.dispose();
     _searchController.dispose();
     _scrollController.dispose();
@@ -773,14 +776,13 @@ class _PaymentDialogState extends State<PaymentDialog> {
                                 const SizedBox(height: 16),
                               ],
 
-                              // Reference Field
+                              // Comment Field
                               TextField(
-                                controller: _referenceController,
+                                controller: _commentController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Reference (Optional)',
+                                  labelText: 'Comment',
                                   border: OutlineInputBorder(),
-                                  hintText:
-                                      'Transaction reference, receipt number, etc.',
+                                  hintText: 'Transaction Comment',
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -978,7 +980,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
   void _showInlinePaymentMethodForm() {
     _selectedPaymentMethod = null;
     _amountController.text = _remainingAmount.toStringAsFixed(0);
-    _referenceController.text = '';
+    _commentController.text = '';
     _customerNameController.text = '';
     _selectedDepositClient = null;
     _depositClients = [];
@@ -1035,20 +1037,14 @@ class _PaymentDialogState extends State<PaymentDialog> {
       return;
     }
 
-    // Prepare reference - include customer name for methods that require it
-    String reference = _referenceController.text.trim();
-    if (_requiresCustomerName) {
-      String customerName = _customerNameController.text.trim();
-      // reference = reference.isEmpty
-      //     ? "Customer: $customerName"
-      //     : "$reference - Customer: $customerName";
-    }
+    // Prepare comment
+    String comment = _commentController.text.trim();
 
     final paymentMethod = PaymentMethod(
       type: _selectedPaymentMethod!.displayName,
       methodName: _selectedPaymentMethod!.methodName,
       amount: amount,
-      reference: "",
+      comment: comment,
       methodId: _selectedPaymentMethod!.id,
       // Include deposit client info if using deposit payment method
       clientId: _isDepositPayment ? _selectedDepositClient?.clientId : null,
@@ -1099,7 +1095,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
               'method':
                   method.methodName, // Use the actual method_name from API
               'amount': method.amount.toString(),
-              'reference': method.reference,
+              'comment': method.comment,
               if (method.clientId != null)
                 'client_id': method.clientId.toString(),
               if (method.clientName != null) 'client_name': method.clientName,
@@ -1118,7 +1114,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
       paymentMethodsData.add({
         'method': 'cash', // Default to cash for zero payments
         'amount': '0',
-        'reference': 'Full discount applied',
+        'comment': 'Full discount applied',
       });
     }
 
@@ -1139,7 +1135,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
 class PaymentMethod {
   final String type;
   final double amount;
-  final String reference;
+  final String comment;
   final String methodName;
   final int methodId;
   final int? clientId;
@@ -1149,7 +1145,7 @@ class PaymentMethod {
   PaymentMethod({
     required this.type,
     required this.amount,
-    this.reference = '',
+    this.comment = '',
     required this.methodName,
     required this.methodId,
     this.clientId,
@@ -1159,8 +1155,8 @@ class PaymentMethod {
 
   @override
   String toString() {
-    final ref = reference.isNotEmpty ? ' (Ref: $reference)' : '';
-    return '$type: RWF ${amount.toStringAsFixed(0)}$ref';
+    final cmt = comment.isNotEmpty ? ' ($comment)' : '';
+    return '$type: RWF ${amount.toStringAsFixed(0)}$cmt';
   }
 }
 

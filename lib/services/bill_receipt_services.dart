@@ -179,7 +179,7 @@ class BillReceiptServices {
             user != null ? user.fullName : orderDetail.waiterName),
         pw.SizedBox(height: 6),
         _buildInfoRowBold(
-          '',
+          'Date',
           orderDetail.createdAt,
         ),
         pw.SizedBox(height: 6),
@@ -187,6 +187,12 @@ class BillReceiptServices {
           'Table ',
           orderDetail.tableNumber,
         ),
+        //display covers if available
+        if (orderDetail.covers != null)
+          _buildInfoRowBold(
+            'Covers ',
+            orderDetail.covers.toString(),
+          ),
         _buildInfoRow('Receipt Number ', orderDetail.orderNumber),
       ],
     );

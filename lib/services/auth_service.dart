@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:io';
 import 'package:kozo/utils/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
@@ -11,17 +11,63 @@ class AuthService {
 
   static Future<Map<String, dynamic>> login(String pin) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/users/auth'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'pin': pin,
-        }),
+      print('Attempting login to: $baseUrl/users/auth');
+
+      // Create HttpClient with proper settings
+      final httpClient = HttpClient();
+      httpClient.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true;
+
+      final request =
+          await httpClient.postUrl(Uri.parse('$baseUrl/users/auth'));
+      request.headers.set('Content-Type', 'application/json; charset=utf-8');
+      request.headers.set('Accept', 'application/json');
+      request.headers.set('Accept-Charset', 'utf-8');
+      request.headers.set('Accept-Encoding',
+          'identity'); // Disable compression to avoid gzip issues
+
+      request.write(jsonEncode({'pin': pin}));
+
+      final response = await request.close();
+
+      // Read raw bytes first
+      final bytes = await response.fold<List<int>>(
+        <int>[],
+        (List<int> previous, List<int> element) => previous..addAll(element),
       );
 
-      final data = jsonDecode(response.body);
+      // Try to decode as UTF-8
+      String responseBody;
+      try {
+        responseBody = utf8.decode(bytes);
+      } catch (e) {
+        // If UTF-8 fails, try latin1
+        responseBody = latin1.decode(bytes);
+      }
+
+      print('Response status code: ${response.statusCode}');
+      print('Response body: $responseBody');
+
+      // Close the client
+      httpClient.close();
+
+      if (responseBody.isEmpty) {
+        return {
+          'success': false,
+          'message':
+              'Server returned empty response (Status: ${response.statusCode})',
+        };
+      }
+
+      // Handle redirect responses
+      if (response.statusCode == 301 || response.statusCode == 302) {
+        return {
+          'success': false,
+          'message': 'Server redirect detected. Please check the API URL.',
+        };
+      }
+
+      final data = jsonDecode(responseBody);
       print("user login successful respond data:$data");
       if (response.statusCode == 200 && data['success'] == true) {
         final user = User.fromJson(data['user']);
@@ -37,10 +83,12 @@ class AuthService {
           'message': data['message'] ?? 'Login failed',
         };
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('Login error: $e');
+      print('Stack trace: $stackTrace');
       return {
         'success': false,
-        'message': 'Network error. Please check your connection.',
+        'message': 'Network error: $e',
       };
     }
   }

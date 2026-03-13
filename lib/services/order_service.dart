@@ -915,6 +915,7 @@ class OrderService {
     String? orderType,
     String? orderNotes,
     String? createdAt,
+    String? covers,
     required List<Map<String, dynamic>> items,
   }) async {
     try {
@@ -933,6 +934,7 @@ class OrderService {
         'cashierId': currentUser.id.toString(),
         'items': items,
         'createdAt': createdAt ?? '',
+        'covers': covers ?? '',
       };
 
       print('🔍 Processing order with requestwwwwwwww: $requestData');
@@ -1153,8 +1155,7 @@ class OrderService {
 
   static Future<List<String>> fetchReturnReasons() async {
     try {
-      print(
-          '📋 Fetching return reasons from: $baseUrl/Orders/getReturnReason');
+      print('📋 Fetching return reasons from: $baseUrl/Orders/getReturnReason');
       final response = await _dio.get('$baseUrl/Orders/getReturnReason');
       print('📋 Return reasons response: ${response.data}');
 

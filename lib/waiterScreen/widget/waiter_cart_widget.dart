@@ -15,11 +15,13 @@ class WaiterCartWidget extends StatelessWidget {
   final List<CartItem> cartItems;
   final List<TableModel> tables;
   final TableModel? selectedTable;
+  final String covers;
   final bool isLoadingTables;
   final Map<int, List<Specification>> itemSpecifications;
   final Function(int, {int? specificationId}) onRemoveFromCart;
   final Function(int, int, {int? specificationId}) onUpdateQuantity;
   final Function(TableModel?) onTableChanged;
+  final Function(String) onCoversChanged;
   final Function(int, int, String) onUpdateItemComment;
   final Function(int, int, int) onUpdateItemPrepOrder;
   final Function(int, int, int?) onUpdateItemPressure; // Add pressure callback
@@ -33,11 +35,13 @@ class WaiterCartWidget extends StatelessWidget {
     required this.cartItems,
     required this.tables,
     required this.selectedTable,
+    required this.covers,
     required this.isLoadingTables,
     required this.itemSpecifications,
     required this.onRemoveFromCart,
     required this.onUpdateQuantity,
     required this.onTableChanged,
+    required this.onCoversChanged,
     required this.onUpdateItemComment,
     required this.onUpdateItemPrepOrder,
     required this.onUpdateItemPressure, // Add pressure callback
@@ -922,6 +926,58 @@ class WaiterCartWidget extends StatelessWidget {
                                                         return null;
                                                       },
                                                     ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                      // Covers Section
+                                      Expanded(
+                                        flex: 1,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          margin:
+                                              const EdgeInsets.only(left: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange[50],
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                                color: Colors.orange[200]!),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const Text(
+                                                'Covers',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                  color: Colors.orange,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
+                                              TextFormField(
+                                                initialValue: covers,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                decoration: InputDecoration(
+                                                  labelText: 'Enter covers',
+                                                  hintText: 'e.g. 4',
+                                                  border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                  contentPadding:
+                                                      const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 12,
+                                                          vertical: 8),
+                                                ),
+                                                onChanged: onCoversChanged,
+                                              ),
                                             ],
                                           ),
                                         ),

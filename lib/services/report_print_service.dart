@@ -608,54 +608,168 @@ class ReportPrintService {
 
   // Build Discount Summary Section
   static pw.Widget _buildDiscountSummarySection(List<dynamic> discountData) {
-    final discount = discountData.first;
+    // Calculate totals from all discount types
+    double totalAmount = 0;
+    int totalTransactions = 0;
 
-    // Calculate discount percentage
-    int totalOrders = discount['total_orders'] as int? ?? 0;
-    int ordersWithDiscount = discount['orders_with_discount'] as int? ?? 0;
-    double discountPercentage =
-        totalOrders > 0 ? (ordersWithDiscount / totalOrders) * 100 : 0;
+    for (var item in discountData) {
+      final amount = item['total_amount'];
+      if (amount is String) {
+        totalAmount += double.tryParse(amount) ?? 0;
+      } else if (amount is num) {
+        totalAmount += amount.toDouble();
+      }
+      totalTransactions += (item['transaction_count'] as int?) ?? 0;
+    }
 
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         _buildSectionHeader('Discount Summary'),
         pw.SizedBox(height: 10),
-        // Display discount information in rows
-        buildInfoRow(
-          title: 'Date',
-          value: discount['date'] ?? 'N/A',
-        ),
-        buildInfoRow(
-          title: 'Total Orders',
-          value: totalOrders.toString(),
-        ),
-        buildInfoRow(
-          title: 'Orders With Discount',
-          value: ordersWithDiscount.toString(),
+
+        // Table Header
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(vertical: 4),
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+              bottom: pw.BorderSide(color: PdfColors.grey400, width: 1),
+            ),
+          ),
+          child: pw.Row(
+            children: [
+              pw.Expanded(
+                flex: 3,
+                child: pw.Text(
+                  'Method',
+                  style: pw.TextStyle(
+                    fontSize: _fontSize,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.Expanded(
+                flex: 2,
+                child: pw.Text(
+                  'Count',
+                  textAlign: pw.TextAlign.center,
+                  style: pw.TextStyle(
+                    fontSize: _fontSize,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.Expanded(
+                flex: 3,
+                child: pw.Text(
+                  'Amount',
+                  textAlign: pw.TextAlign.left,
+                  style: pw.TextStyle(
+                    fontSize: _fontSize,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
 
-        buildInfoRow(
-          title: 'Total Discount Amount',
-          value: _formatCurrency(discount['total_discount_amount']),
+        // Discount Rows
+        ...discountData.map((item) => _buildDiscountRow(item)).toList(),
+
+        // Total Row
+        pw.Container(
+          padding: const pw.EdgeInsets.symmetric(vertical: 4),
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(
+              top: pw.BorderSide(color: PdfColors.grey400, width: 1),
+            ),
+          ),
+          child: pw.Row(
+            children: [
+              pw.Expanded(
+                flex: 3,
+                child: pw.Text(
+                  'TOTAL',
+                  style: pw.TextStyle(
+                    fontSize: _fontSize,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.Expanded(
+                flex: 2,
+                child: pw.Text(
+                  '$totalTransactions',
+                  textAlign: pw.TextAlign.
+                  center,
+                  style: pw.TextStyle(
+                    fontSize: _fontSize,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.Expanded(
+                flex: 3,
+                child: pw.Text(
+                  _formatCurrency(totalAmount),
+                  textAlign: pw.TextAlign.left,
+                  style: pw.TextStyle(
+                    fontSize: _fontSize,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+
         pw.SizedBox(height: 10),
-        // pw.Container(
-        //   padding: const pw.EdgeInsets.all(8),
-        //   decoration: pw.BoxDecoration(
-        //     color: PdfColors.grey100,
-        //     borderRadius: const pw.BorderRadius.all(pw.Radius.circular(5)),
-        //   ),
-        //   child: pw.Text(
-        //     'Discounts can significantly impact revenue. Monitor discount usage for optimal pricing strategy.',
-        //     style: pw.TextStyle(
-        //       fontSize: _smallFontSize,
-        //       fontStyle: pw.FontStyle.italic,
-        //       color: PdfColors.grey700,
-        //     ),
-        //   ),
-        // ),
       ],
+    );
+  }
+
+  // Build individual discount row
+  static pw.Widget _buildDiscountRow(Map<String, dynamic> item) {
+    final String methodType = item['method_type'] ?? 'Unknown';
+    final int transactionCount = item['transaction_count'] as int? ?? 0;
+    final amount = item['total_amount'];
+    double totalAmount = 0;
+    if (amount is String) {
+      totalAmount = double.tryParse(amount) ?? 0;
+    } else if (amount is num) {
+      totalAmount = amount.toDouble();
+    }
+
+    return pw.Container(
+      padding: const pw.EdgeInsets.symmetric(vertical: 3),
+      child: pw.Row(
+        children: [
+          pw.Expanded(
+            flex: 3,
+            child: pw.Text(
+              methodType,
+              style: pw.TextStyle(fontSize: _fontSize),
+            ),
+          ),
+          pw.Expanded(
+            flex: 2,
+            child: pw.Text(
+              '$transactionCount',
+              textAlign: pw.TextAlign.center,
+              style: pw.TextStyle(fontSize: _fontSize),
+            ),
+          ),
+          pw.Expanded(
+            flex: 3,
+            child: pw.Text(
+              _formatCurrency(totalAmount),
+              textAlign: pw.TextAlign.left,
+              style: pw.TextStyle(fontSize: _fontSize),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

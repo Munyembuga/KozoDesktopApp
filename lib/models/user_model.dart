@@ -30,6 +30,7 @@ class User {
   final String lastName;
   final String? email; // Make email nullable
   final String role;
+  final int dashboardAccess; // 1 = Cashier, 2 = Waiter
   final String? companyName;
   final String? location;
   final String? telephone;
@@ -42,6 +43,7 @@ class User {
     required this.lastName,
     this.email,
     required this.role,
+    this.dashboardAccess = 1,
     this.companyName,
     this.location,
     this.telephone,
@@ -58,6 +60,8 @@ class User {
       lastName: json['last_name'],
       email: json['email'] == null ? null : json['email'].toString(),
       role: json['role'],
+      dashboardAccess:
+          int.tryParse(json['dashboard_access']?.toString() ?? '1') ?? 1,
       companyName: json['company name']?.toString(),
       location: json['location']?.toString(),
       telephone: json['telephone']?.toString(),
@@ -77,6 +81,7 @@ class User {
       'last_name': lastName,
       'email': email ?? '',
       'role': role,
+      'dashboard_access': dashboardAccess,
       'company name': companyName ?? '',
       'location': location ?? '',
       'telephone': telephone ?? '',

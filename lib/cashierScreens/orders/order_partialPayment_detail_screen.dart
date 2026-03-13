@@ -397,6 +397,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   Icons.location_on,
                 ),
               ),
+              if (_orderDetail!.covers != null)
+                Expanded(
+                  child: _buildInfoItem(
+                    'Covers',
+                    _orderDetail!.covers.toString(),
+                    Icons.people,
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 16),

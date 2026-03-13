@@ -1795,14 +1795,18 @@ class _SummaryStatsReportState extends State<SummaryStatsReport> {
       );
     }
 
-    // Get the first (and likely only) discount record
-    final discountData = _discountSummary!.first;
-
-    // Calculate discount percentage
-    int totalOrders = discountData['total_orders'] as int? ?? 0;
-    int ordersWithDiscount = discountData['orders_with_discount'] as int? ?? 0;
-    double discountPercentage =
-        totalOrders > 0 ? (ordersWithDiscount / totalOrders) * 100 : 0;
+    // Calculate total amount from all discount types
+    double totalAmount = 0;
+    int totalTransactions = 0;
+    for (var item in _discountSummary!) {
+      final amount = item['total_amount'];
+      if (amount is String) {
+        totalAmount += double.tryParse(amount) ?? 0;
+      } else if (amount is num) {
+        totalAmount += amount.toDouble();
+      }
+      totalTransactions += (item['transaction_count'] as int?) ?? 0;
+    }
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1830,66 +1834,135 @@ class _SummaryStatsReportState extends State<SummaryStatsReport> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              Text(
-                discountData['date'] ?? 'N/A',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.primary,
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$totalTransactions Transactions',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.red,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Main discount data item
+          // Table Header
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.red.withOpacity(0.2)),
+              color: Colors.grey.withOpacity(0.1),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                topRight: Radius.circular(8),
+              ),
             ),
             child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child:
-                      const Icon(Icons.discount, color: Colors.red, size: 24),
-                ),
-                const SizedBox(width: 12),
+              children: const [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  flex: 3,
+                  child: Text(
+                    'Method Type',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'Transactions',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    'Total Amount',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Discount Items
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(8),
+                bottomRight: Radius.circular(8),
+              ),
+            ),
+            child: Column(
+              children: [
+                ..._discountSummary!.map((item) => _buildDiscountRow(item)),
+                // Total Row
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.05),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                  ),
+                  child: Row(
                     children: [
-                      const Text(
-                        'Total Discount Amount',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                      const Expanded(
+                        flex: 3,
+                        child: Text(
+                          'TOTAL',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.red,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${ordersWithDiscount} out of ${totalOrders} orders (${discountPercentage.toStringAsFixed(1)}%)',
-                        style: TextStyle(
-                          color: AppColors.grey,
-                          fontSize: 14,
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          '$totalTransactions',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          _formatCurrency(totalAmount),
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.red,
+                          ),
                         ),
                       ),
                     ],
-                  ),
-                ),
-                Text(
-                  _formatCurrency(discountData['total_discount_amount']),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: Colors.red,
                   ),
                 ),
               ],
@@ -1911,7 +1984,7 @@ class _SummaryStatsReportState extends State<SummaryStatsReport> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Discounts can significantly impact revenue. Monitor discount usage for optimal pricing strategy.',
+                    'Discounts, complementary items, duty meals, and wastage are tracked separately for better reporting.',
                     style: TextStyle(
                       color: AppColors.grey,
                       fontSize: 12,
@@ -1920,6 +1993,103 @@ class _SummaryStatsReportState extends State<SummaryStatsReport> {
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDiscountRow(Map<String, dynamic> item) {
+    final String methodType = item['method_type'] ?? 'Unknown';
+    final int transactionCount = item['transaction_count'] as int? ?? 0;
+    final amount = item['total_amount'];
+    double totalAmount = 0;
+    if (amount is String) {
+      totalAmount = double.tryParse(amount) ?? 0;
+    } else if (amount is num) {
+      totalAmount = amount.toDouble();
+    }
+
+    // Get icon and color based on method type
+    IconData icon;
+    Color color;
+    switch (methodType.toUpperCase()) {
+      case 'DISCOUNT':
+        icon = Icons.discount;
+        color = Colors.orange;
+        break;
+      case 'COMPLEMENTARY':
+        icon = Icons.card_giftcard;
+        color = Colors.purple;
+        break;
+      case 'DUTY MEAL':
+        icon = Icons.restaurant;
+        color = Colors.blue;
+        break;
+      case 'WASTAGE':
+        icon = Icons.delete_outline;
+        color = Colors.red;
+        break;
+      default:
+        icon = Icons.payment;
+        color = Colors.grey;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey.withOpacity(0.1)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Icon(icon, color: color, size: 18),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    methodType,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              '$transactionCount',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              _formatCurrency(totalAmount),
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: color,
+              ),
             ),
           ),
         ],

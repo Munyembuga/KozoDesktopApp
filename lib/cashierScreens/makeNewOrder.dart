@@ -53,6 +53,9 @@ class _MakeNewOrderScreenState extends State<MakeNewOrderScreen> {
   String _selectedOrderType = 'dine_in'; // Default to dine_in
   String _orderNotes = '';
 
+  // Covers for the order
+  String _covers = '';
+
   // Search functionality variables
   bool _isSearching = false;
   bool _isLoadingSearch = false;
@@ -595,6 +598,7 @@ class _MakeNewOrderScreenState extends State<MakeNewOrderScreen> {
         orderType: _selectedOrderType,
         orderNotes: _orderNotes,
         createdAt: formattedOrderDateTime,
+        covers: _covers,
         items: orderItems,
       );
 
@@ -702,6 +706,7 @@ class _MakeNewOrderScreenState extends State<MakeNewOrderScreen> {
       _loadingSpecifications.clear();
       _selectedOrderType = 'dine_in';
       _orderNotes = '';
+      _covers = '';
       _orderNotesController.clear();
       _selectedDate = DateTime.now();
       _selectedTime = TimeOfDay.now();
@@ -1064,65 +1069,65 @@ class _MakeNewOrderScreenState extends State<MakeNewOrderScreen> {
           'Create New Order',
           style: TextStyle(color: Colors.white),
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56.0),
-          child: Container(
-            color: Colors.white,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _selectDate(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 8.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.calendar_today, color: AppColors.primary),
-                          const SizedBox(width: 8.0),
-                          Text(
-                            '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16.0),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _selectTime(context),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 8.0),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.access_time, color: AppColors.primary),
-                          const SizedBox(width: 8.0),
-                          Text(
-                            '${_selectedTime.hour}:${_selectedTime.minute.toString().padLeft(2, '0')}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        // bottom: PreferredSize(
+        //   preferredSize: const Size.fromHeight(56.0),
+        //   child: Container(
+        //     color: Colors.white,
+        //     padding:
+        //         const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        //     child: Row(
+        //       children: [
+                // Expanded(
+                //   child: InkWell(
+                //     onTap: () => _selectDate(context),
+                //     child: Container(
+                //       padding: const EdgeInsets.symmetric(
+                //           horizontal: 12.0, vertical: 8.0),
+                //       decoration: BoxDecoration(
+                //         border: Border.all(color: Colors.grey.shade300),
+                //         borderRadius: BorderRadius.circular(8.0),
+                //       ),
+                //       child: Row(
+                //         children: [
+                //           Icon(Icons.calendar_today, color: AppColors.primary),
+                //           const SizedBox(width: 8.0),
+                //           Text(
+                //             '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                //             style: const TextStyle(fontWeight: FontWeight.bold),
+                //           ),
+                //         ],
+                //       ),
+                //     ),
+                //   ),
+                // ),
+                // const SizedBox(width: 16.0),
+                // Expanded(
+                //   child: InkWell(
+                //     onTap: () => _selectTime(context),
+                //     child: Container(
+                //       padding: const EdgeInsets.symmetric(
+                //           horizontal: 12.0, vertical: 8.0),
+                //       decoration: BoxDecoration(
+                //         border: Border.all(color: Colors.grey.shade300),
+                //         borderRadius: BorderRadius.circular(8.0),
+                //       ),
+                //       child: Row(
+                //         children: [
+                //           Icon(Icons.access_time, color: AppColors.primary),
+                //           const SizedBox(width: 8.0),
+                //           Text(
+                //             '${_selectedTime.hour}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+                //             style: const TextStyle(fontWeight: FontWeight.bold),
+                //           ),
+                //         ],
+                //       ),
+                //     ),
+                //   ),
+                // ),
+        //       ],
+        //     ),
+        //   ),
+        // ),
         actions: [
           IconButton(
             icon: Badge(
@@ -1338,6 +1343,7 @@ class _MakeNewOrderScreenState extends State<MakeNewOrderScreen> {
                 selectedClient: _selectedClient,
                 selectedWaiter: _selectedWaiter,
                 selectedTable: _selectedTable,
+                covers: _covers,
                 isLoadingWaiters: _isLoadingWaiters,
                 isLoadingTables: _isLoadingTables,
                 clientDiscounts: _clientDiscounts,
@@ -1375,6 +1381,11 @@ class _MakeNewOrderScreenState extends State<MakeNewOrderScreen> {
                 onTableChanged: (TableModel? newValue) {
                   setState(() {
                     _selectedTable = newValue;
+                  });
+                },
+                onCoversChanged: (String newValue) {
+                  setState(() {
+                    _covers = newValue;
                   });
                 },
                 onClientChanged: (SpecialClient? newValue) {

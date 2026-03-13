@@ -191,6 +191,8 @@ class KitchenReceiptService {
         _buildKitchenInfoRow('Date:', dateFormatter.format(now)),
         _buildKitchenInfoRow('Order:', orderDetail.orderNumber),
         _buildKitchenInfoRow('Waiter:', orderDetail.waiterName),
+        if (orderDetail.covers != null)
+          _buildKitchenInfoRow('Covers:', orderDetail.covers.toString()),
         // Printer name shown under waiter name when printing
         if (printerName != null) _buildKitchenInfoRow('Printer:', printerName),
         if (orderDetail.clientName != null)
