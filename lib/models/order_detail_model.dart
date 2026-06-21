@@ -16,6 +16,7 @@ class OrderDetail {
   final String orderNotes;
   final String createdAt;
   final String updatedAt;
+  final int ebmRecorded;
   final String tableNumber;
   final String tableLocation;
   final String? clientName;
@@ -48,6 +49,7 @@ class OrderDetail {
     required this.orderNotes,
     required this.createdAt,
     required this.updatedAt,
+    required this.ebmRecorded,
     required this.tableNumber,
     required this.tableLocation,
     this.clientName,
@@ -93,6 +95,8 @@ class OrderDetail {
       orderNotes: orderData['order_notes']?.toString() ?? '',
       createdAt: orderData['created_at'] ?? '',
       updatedAt: orderData['updated_at'] ?? '',
+      ebmRecorded:
+          int.tryParse(orderData['ebm_recorded']?.toString() ?? '0') ?? 0,
       tableNumber: orderData['table_number']?.toString() ?? '',
       tableLocation: orderData['table_location'] ?? '',
       clientName: orderData['client_name'],

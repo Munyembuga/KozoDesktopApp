@@ -576,6 +576,7 @@ class _OrderTabCompletedState extends State<OrderTabCompleted> {
             setState(() {
               _selectedOrder = order;
             });
+            debugPrint('Completed order selected: ${order.id}');
           },
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

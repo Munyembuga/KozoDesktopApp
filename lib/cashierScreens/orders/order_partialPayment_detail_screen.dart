@@ -1102,10 +1102,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       context: context,
       builder: (context) => PaymentDialog(
         totalAmount: remainingAmount,
-        onPayment: (amountReceived, paymentMethodsData, notes, discountAmount,
-            discountPercentage) async {
-          await _processPayment(amountReceived, paymentMethodsData, notes,
-              discountAmount, discountPercentage);
+        onPayment: (amountReceived,
+            paymentMethodsData,
+            notes,
+            discountAmount,
+            discountPercentage,
+            identificationType,
+            phoneOrTin,
+            customerName,
+            purchaseCode) async {
+          await _processPayment(
+            amountReceived,
+            paymentMethodsData,
+            notes,
+            discountAmount,
+            discountPercentage,
+            identificationType,
+            phoneOrTin,
+            customerName,
+            purchaseCode,
+          );
         },
       ),
     );
@@ -1117,6 +1133,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     String notes,
     double discountAmount,
     double discountPercentage,
+    String identificationType,
+    String phoneOrTin,
+    String customerName,
+    String purchaseCode,
   ) async {
     try {
       showDialog(

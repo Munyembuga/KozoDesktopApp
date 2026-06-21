@@ -1166,9 +1166,26 @@ class _ServedOrderDetailScreenState extends State<ServedOrderDetailScreen> {
       context: context,
       builder: (context) => PaymentDialog(
         totalAmount: double.parse(_orderDetail!.grandTotal.toString()),
-        onPayment: (amountReceived, paymentMethodsData, notes, discount) async {
+        onPayment: (amountReceived,
+            paymentMethodsData,
+            notes,
+            discountAmount,
+            discountPercentage,
+            identificationType,
+            phoneOrTin,
+            customerName,
+            purchaseCode) async {
           await _processPayment(
-              amountReceived, paymentMethodsData, notes, discount);
+            amountReceived,
+            paymentMethodsData,
+            notes,
+            discountAmount,
+            discountPercentage,
+            identificationType,
+            phoneOrTin,
+            customerName,
+            purchaseCode,
+          );
         },
       ),
     );
@@ -1178,7 +1195,12 @@ class _ServedOrderDetailScreenState extends State<ServedOrderDetailScreen> {
     double amountReceived,
     List<Map<String, dynamic>> paymentMethodsData,
     String notes,
-    double discount,
+    double discountAmount,
+    double discountPercentage,
+    String identificationType,
+    String phoneOrTin,
+    String customerName,
+    String purchaseCode,
   ) async {
     try {
       showDialog(

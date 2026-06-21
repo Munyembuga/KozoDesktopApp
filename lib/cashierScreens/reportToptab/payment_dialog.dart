@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'package:kozo/utils/constants.dart';
+import 'package:kozo/services/auth_service.dart';
+import 'package:kozo/models/user_model.dart';
 
 class PaymentDialog extends StatefulWidget {
   final double totalAmount;
@@ -12,7 +14,11 @@ class PaymentDialog extends StatefulWidget {
       List<Map<String, dynamic>> paymentMethods,
       String notes,
       double discountAmount,
-      double discountPercentage) onPayment;
+      double discountPercentage,
+      String identificationType,
+      String phoneOrTin,
+      String customerName,
+      String purchaseCode) onPayment;
 
   const PaymentDialog({
     super.key,
@@ -31,6 +37,9 @@ class _PaymentDialogState extends State<PaymentDialog> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _commentController = TextEditingController();
   final TextEditingController _customerNameController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _customerTypeController = TextEditingController();
+  final TextEditingController _purchaseCodeController = TextEditingController();
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
@@ -44,6 +53,10 @@ class _PaymentDialogState extends State<PaymentDialog> {
   List<DepositClient> _depositClients = [];
   DepositClient? _selectedDepositClient;
   bool _isLoadingDeposits = false;
+  User? _currentUser;
+
+  // Identification type selection
+  String _identificationType = 'phone'; // 'phone' or 'tin'
 
   // Discount functionality removed as it's now handled elsewhere
   double get _discountAmount {
@@ -66,7 +79,18 @@ class _PaymentDialogState extends State<PaymentDialog> {
   void initState() {
     super.initState();
     _fetchPaymentMethods();
+    _loadCurrentUser();
   }
+
+  Future<void> _loadCurrentUser() async {
+    final user = await AuthService.getCurrentUser();
+    if (!mounted) return;
+    setState(() {
+      _currentUser = user;
+    });
+  }
+
+  bool get _showCustomerIdentification => _currentUser?.ebmAllowed == 1;
 
   Future<void> _fetchPaymentMethods() async {
     try {
@@ -174,6 +198,9 @@ class _PaymentDialogState extends State<PaymentDialog> {
     _amountController.dispose();
     _commentController.dispose();
     _customerNameController.dispose();
+    _phoneNumberController.dispose();
+    _customerTypeController.dispose();
+    _purchaseCodeController.dispose();
     _searchController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -839,17 +866,147 @@ class _PaymentDialogState extends State<PaymentDialog> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Payment Notes
+                      if (_showCustomerIdentification) ...[
+                        // Customer Identification Section
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(8),
+                            border:
+                                Border.all(color: Colors.grey.withOpacity(0.2)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Customer Identification',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              // Radio buttons for TIN/Phone selection
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Radio<String>(
+                                          value: 'phone',
+                                          groupValue: _identificationType,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _identificationType = value!;
+                                            });
+                                          },
+                                        ),
+                                        const Expanded(
+                                          child: Text('Phone Number'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Radio<String>(
+                                          value: 'tin',
+                                          groupValue: _identificationType,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              _identificationType = value!;
+                                            });
+                                          },
+                                        ),
+                                        const Expanded(
+                                          child: Text('TIN'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Phone Number Field (shown when phone is selected)
+                              if (_identificationType == 'phone') ...[
+                                TextField(
+                                  controller: _phoneNumberController,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(9),
+                                  ],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Phone Number',
+                                    border: OutlineInputBorder(),
+                                    hintText: 'Enter 9-digit phone number',
+                                    prefixIcon: Icon(Icons.phone),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+
+                              // TIN Field (shown when tin is selected)
+                              if (_identificationType == 'tin') ...[
+                                TextField(
+                                  controller: _phoneNumberController,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(9),
+                                  ],
+                                  decoration: const InputDecoration(
+                                    labelText: 'TIN',
+                                    border: OutlineInputBorder(),
+                                    hintText: 'Enter TIN number',
+                                    prefixIcon: Icon(Icons.credit_card),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+
+                              // Customer Name Field (shown for both)
+                              TextField(
+                                controller: _customerNameController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Customer Name',
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Enter customer name',
+                                  prefixIcon: Icon(Icons.person),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Purchase Code Field (only shown when TIN is selected)
+                              if (_identificationType == 'tin') ...[
+                                TextField(
+                                  controller: _purchaseCodeController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Purchase Code (Optional)',
+                                    border: OutlineInputBorder(),
+                                    hintText: 'Enter purchase code',
+                                    prefixIcon: Icon(Icons.qr_code),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Number of Covers Field
                       TextField(
                         controller: _coversController,
                         decoration: const InputDecoration(
                           labelText: 'Number of Covers',
                           border: OutlineInputBorder(),
                           hintText: '12 or 15 persons',
-                          // contentPadding: EdgeInsets.symmetric(
-                          //     horizontal: 12, vertical: 12),
                         ),
-                        // maxLines: 2,
                       ),
                       const SizedBox(height: 16),
                     ],
@@ -982,6 +1139,9 @@ class _PaymentDialogState extends State<PaymentDialog> {
     _amountController.text = _remainingAmount.toStringAsFixed(0);
     _commentController.text = '';
     _customerNameController.text = '';
+    _phoneNumberController.text = '';
+    _customerTypeController.text = '';
+    _purchaseCodeController.text = '';
     _selectedDepositClient = null;
     _depositClients = [];
     _searchController.text = '';
@@ -1054,6 +1214,9 @@ class _PaymentDialogState extends State<PaymentDialog> {
               ? _customerNameController.text.trim()
               : null,
       depositId: _isDepositPayment ? _selectedDepositClient?.depositId : null,
+      phoneNumber: _phoneNumberController.text.trim(),
+      customerType: _customerTypeController.text.trim(),
+      purchaseCode: _purchaseCodeController.text.trim(),
     );
 
     setState(() {
@@ -1068,6 +1231,93 @@ class _PaymentDialogState extends State<PaymentDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please add at least one payment method'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final customerName =
+        _showCustomerIdentification ? _customerNameController.text.trim() : '';
+    final phoneOrTin =
+        _showCustomerIdentification ? _phoneNumberController.text.trim() : '';
+    final purchaseCode =
+        _showCustomerIdentification ? _purchaseCodeController.text.trim() : '';
+
+    if (_showCustomerIdentification) {
+      if (customerName.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please enter customer name'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      if (_identificationType == 'phone') {
+        if (phoneOrTin.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enter phone number'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        if (phoneOrTin.length != 9) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Phone number must be exactly 9 digits'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      } else {
+        if (phoneOrTin.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enter TIN'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        if (phoneOrTin.length > 9) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('TIN must not be greater than 9 digits'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+
+        if (purchaseCode.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enter purchase code'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      }
+    }
+
+    // Validate phone numbers for methods with phone identification
+    final hasInvalidPhoneNumber = _paymentMethods.any(
+      (method) =>
+          method.phoneNumber.isNotEmpty && method.phoneNumber.length != 9,
+    );
+
+    if (hasInvalidPhoneNumber) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Phone number must be exactly 9 digits'),
           backgroundColor: Colors.red,
         ),
       );
@@ -1101,6 +1351,12 @@ class _PaymentDialogState extends State<PaymentDialog> {
               if (method.clientName != null) 'client_name': method.clientName,
               if (method.depositId != null)
                 'depositId': method.depositId.toString(),
+              if (method.phoneNumber.isNotEmpty)
+                'phone_number': method.phoneNumber,
+              if (method.customerType.isNotEmpty)
+                'customer_type': method.customerType,
+              if (method.purchaseCode.isNotEmpty)
+                'purchase_code': method.purchaseCode,
             })
         .toList();
 
@@ -1124,6 +1380,10 @@ class _PaymentDialogState extends State<PaymentDialog> {
       _coversController.text.trim(),
       discountAmount, // Send calculated discount amount
       discountPercentage, // Send percentage value
+      _identificationType, // 'phone' or 'tin'
+      phoneOrTin,
+      customerName,
+      purchaseCode,
     );
     Navigator.of(context).pop();
   }
@@ -1141,6 +1401,9 @@ class PaymentMethod {
   final int? clientId;
   final String? clientName;
   final int? depositId;
+  final String phoneNumber;
+  final String customerType;
+  final String purchaseCode;
 
   PaymentMethod({
     required this.type,
@@ -1151,6 +1414,9 @@ class PaymentMethod {
     this.clientId,
     this.clientName,
     this.depositId,
+    this.phoneNumber = '',
+    this.customerType = '',
+    this.purchaseCode = '',
   });
 
   @override

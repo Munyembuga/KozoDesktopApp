@@ -103,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: const Text(
-                'Designed & Developed by TITAN TECH HUB Ltd',
+                'Designed & Developed by TITAN TECH HUB Ltd v1.0.2',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,

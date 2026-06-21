@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:kozo/navRailscreen/navRailMainCashier.dart';
 import 'package:kozo/services/receipt_service.dart';
+import '../models/user_model.dart';
 import '../models/order_detail_model.dart';
+import '../services/auth_service.dart';
 import '../services/order_service.dart';
 import 'reportToptab/payment_dialog.dart';
 
@@ -23,6 +28,7 @@ class CompletedOrderDetailScreen extends StatefulWidget {
 class _CompletedOrderDetailScreenState
     extends State<CompletedOrderDetailScreen> {
   OrderDetail? _orderDetail;
+  User? _currentUser;
   bool _isLoading = true;
   String? _errorMessage;
   final ScrollController _scrollController = ScrollController();
@@ -30,6 +36,7 @@ class _CompletedOrderDetailScreenState
   @override
   void initState() {
     super.initState();
+    _loadCurrentUser();
     _fetchOrderDetail();
   }
 
@@ -37,6 +44,14 @@ class _CompletedOrderDetailScreenState
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCurrentUser() async {
+    final user = await AuthService.getCurrentUser();
+    if (!mounted) return;
+    setState(() {
+      _currentUser = user;
+    });
   }
 
   // Scroll to top method
@@ -403,6 +418,17 @@ class _CompletedOrderDetailScreenState
                             ),
                           ),
                           const SizedBox(width: 8),
+                          if (_canRecordEbm)
+                            ElevatedButton.icon(
+                              onPressed: _showRecordEbmDialog,
+                              icon: const Icon(Icons.receipt_long, size: 16),
+                              label: const Text('Record EBM'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                foregroundColor: Colors.white,
+                              ),
+                            ),
+                          if (_canRecordEbm) const SizedBox(width: 8),
                           // Add cancel payment button in the same row
                           if (_orderDetail!.payment != null &&
                               _orderDetail!.payment!.isEditable)
@@ -568,6 +594,12 @@ class _CompletedOrderDetailScreenState
     }
   }
 
+  bool get _canRecordEbm {
+    return _orderDetail != null &&
+        _orderDetail!.ebmRecorded == 0 &&
+        _currentUser?.ebmAllowed == 1;
+  }
+
   Future<void> _previewReceipt() async {
     if (_orderDetail == null) return;
 
@@ -645,10 +677,26 @@ class _CompletedOrderDetailScreenState
       context: context,
       builder: (context) => PaymentDialog(
         totalAmount: double.parse(_orderDetail!.grandTotal.toString()),
-        onPayment: (amountReceived, paymentMethodsData, notes, discountAmount,
-            discountPercentage) async {
-          await _processPayment(amountReceived, paymentMethodsData, notes,
-              discountAmount, discountPercentage);
+        onPayment: (amountReceived,
+            paymentMethodsData,
+            notes,
+            discountAmount,
+            discountPercentage,
+            identificationType,
+            phoneOrTin,
+            customerName,
+            purchaseCode) async {
+          await _processPayment(
+            amountReceived,
+            paymentMethodsData,
+            notes,
+            discountAmount,
+            discountPercentage,
+            identificationType,
+            phoneOrTin,
+            customerName,
+            purchaseCode,
+          );
         },
       ),
     );
@@ -660,6 +708,10 @@ class _CompletedOrderDetailScreenState
     String notes,
     double discountAmount,
     double discountPercentage,
+    String identificationType,
+    String phoneOrTin,
+    String customerName,
+    String purchaseCode,
   ) async {
     try {
       // Show loading dialog
@@ -685,6 +737,10 @@ class _CompletedOrderDetailScreenState
         paymentNotes: notes.isNotEmpty ? notes : null,
         discount: discountAmount,
         discountValue: discountPercentage,
+        identificationType: identificationType,
+        phoneOrTin: phoneOrTin,
+        customerName: customerName,
+        purchaseCode: purchaseCode,
       );
 
       if (mounted) {
@@ -700,6 +756,7 @@ class _CompletedOrderDetailScreenState
 
           // Refresh order details
           widget.onOrderUpdated();
+          await _fetchOrderDetail();
         }
       }
     } catch (e) {
@@ -1092,6 +1149,281 @@ class _CompletedOrderDetailScreenState
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _showRecordEbmDialog() async {
+    if (_orderDetail == null) return;
+
+    final result = await showDialog<Map<String, String>?>(
+      context: context,
+      builder: (context) => _RecordEbmDialog(
+        orderNumber: _orderDetail!.orderNumber,
+      ),
+    );
+
+    if (!mounted || result == null) return;
+
+    await _recordEbm(result);
+  }
+
+  Future<void> _recordEbm(Map<String, String> result) async {
+    final requestBody = {
+      'orderId': _orderDetail!.id,
+      'custTin': result['identityType'] == 'tin' ? result['phoneOrTin'] ?? '' : '',
+      'custNm': result['customerName'] ?? '',
+      'custPhone':
+          result['identityType'] == 'phone' ? result['phoneOrTin'] ?? '' : '',
+      'prcOrdCd': result['purchaseCode'] ?? '',
+    };
+
+    bool loadingDialogOpen = false;
+
+    void closeLoadingDialog() {
+      if (!mounted || !loadingDialogOpen) return;
+      Navigator.of(context).pop();
+      loadingDialogOpen = false;
+    }
+
+    try {
+      loadingDialogOpen = true;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Recording EBM...'),
+            ],
+          ),
+        ),
+      );
+
+      final response = await http.post(
+        Uri.parse('${OrderService.baseUrl}/Orders/record_ebm'),
+        headers: const {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      closeLoadingDialog();
+
+      dynamic responseBody;
+      if (response.body.isNotEmpty) {
+        try {
+          responseBody = jsonDecode(response.body);
+        } catch (_) {
+          responseBody = null;
+        }
+      }
+
+      final success = response.statusCode == 200 &&
+          responseBody is Map && responseBody['success'] == true;
+      final message = responseBody is Map
+          ? (responseBody['message']?.toString() ??
+              (success ? 'EBM recorded successfully' : 'Failed to record EBM'))
+          : (response.body.isNotEmpty
+              ? response.body
+              : (success ? 'EBM recorded successfully' : 'Failed to record EBM'));
+
+      debugPrint('Record EBM request: $requestBody');
+      debugPrint('Record EBM response: ${response.body}');
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.green,
+          ),
+        );
+        widget.onOrderUpdated();
+        await _fetchOrderDetail();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      closeLoadingDialog();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to record EBM: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+
+class _RecordEbmDialog extends StatefulWidget {
+  final String orderNumber;
+
+  const _RecordEbmDialog({required this.orderNumber});
+
+  @override
+  State<_RecordEbmDialog> createState() => _RecordEbmDialogState();
+}
+
+class _RecordEbmDialogState extends State<_RecordEbmDialog> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _identityController = TextEditingController();
+  final TextEditingController _purchaseCodeController = TextEditingController();
+  String _identityType = 'phone';
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _identityController.dispose();
+    _purchaseCodeController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    Navigator.of(context).pop({
+      'identityType': _identityType,
+      'customerName': _nameController.text.trim(),
+      'phoneOrTin': _identityController.text.trim(),
+      'purchaseCode': _purchaseCodeController.text.trim(),
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Record EBM - ${widget.orderNumber}'),
+      content: SizedBox(
+        width: 420,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Customer Identification',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: RadioListTile<String>(
+                        contentPadding: EdgeInsets.zero,
+                        value: 'phone',
+                        groupValue: _identityType,
+                        title: const Text('Phone Number'),
+                        onChanged: (value) {
+                          setState(() {
+                            _identityType = value!;
+                            _identityController.clear();
+                            _purchaseCodeController.clear();
+                          });
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: RadioListTile<String>(
+                        contentPadding: EdgeInsets.zero,
+                        value: 'tin',
+                        groupValue: _identityType,
+                        title: const Text('TIN'),
+                        onChanged: (value) {
+                          setState(() {
+                            _identityType = value!;
+                            _identityController.clear();
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _identityController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(9),
+                  ],
+                  decoration: InputDecoration(
+                    labelText:
+                        _identityType == 'phone' ? 'Phone Number' : 'TIN',
+                    border: const OutlineInputBorder(),
+                    hintText: 'Enter up to 9 digits',
+                  ),
+                  validator: (value) {
+                    final text = value?.trim() ?? '';
+                    if (text.isEmpty) {
+                      return _identityType == 'phone'
+                          ? 'Please enter phone number'
+                          : 'Please enter TIN';
+                    }
+                    if (text.length > 9) {
+                      return 'Must not be greater than 9 digits';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Customer Name',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter customer name';
+                    }
+                    return null;
+                  },
+                ),
+                if (_identityType == 'tin') ...[
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _purchaseCodeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Purchase Code',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (_identityType == 'tin' &&
+                          (value == null || value.trim().isEmpty)) {
+                        return 'Please enter purchase code';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _submit,
+          child: const Text('Submit'),
+        ),
+      ],
     );
   }
 }

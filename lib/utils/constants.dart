@@ -1,10 +1,10 @@
-class AppConfig {
-  static const String baseUrl = "https://kozo.hdev.rw/API_TEST";
-}
-
 // class AppConfig {
-//   static const String baseUrl = "https://kozo.hdev.rw/API_KOZO";
+//   static const String baseUrl = "https://kozo.hdev.rw/API_TEST";
 // }
+
+class AppConfig {
+  static const String baseUrl = "https://kozo.hdev.rw/API_KOZO";
+}
 
 // class AppConfig {
 //   static const String baseUrl = "https://newkozo.x10.mx/API_KOZO";

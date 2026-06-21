@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:kozo/models/paymentMethodModel.dart';
 import 'package:kozo/services/auto_print_service.dart';
@@ -520,7 +522,8 @@ class OrderService {
         final data = response.data;
 
         // Debug logging to help diagnose issues
-        print('Completed order detail response: $data');
+        print('Completed order detail response:\n'
+            '${const JsonEncoder.withIndent('  ').convert(data)}');
 
         if (data['success'] == true) {
           // Check if the data is valid before parsing
@@ -575,6 +578,10 @@ class OrderService {
     String? paymentNotes,
     double? discountValue, // Percentage discount (e.g., 10 for 10%)
     double? discount, // Absolute discount amount
+    String? identificationType,
+    String? phoneOrTin,
+    String? customerName,
+    String? purchaseCode,
   }) async {
     try {
       final currentUser = await AuthService.getCurrentUser();
@@ -595,6 +602,15 @@ class OrderService {
         'paymentMethods': paymentMethods,
         'cashierId': currentUser.id.toString(),
         // Client information is included directly in payment methods now
+        // Customer identification for EBM (only include if provided)
+        if (identificationType != null && identificationType.isNotEmpty)
+          'identificationType': identificationType,
+        if (phoneOrTin != null && phoneOrTin.isNotEmpty)
+          'phoneOrTin': phoneOrTin,
+        if (customerName != null && customerName.isNotEmpty)
+          'customerName': customerName,
+        if (purchaseCode != null && purchaseCode.isNotEmpty)
+          'purchaseCode': purchaseCode,
       };
 
       print('Recording payment with request: $requestData');

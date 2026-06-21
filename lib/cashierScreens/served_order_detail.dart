@@ -26,6 +26,8 @@ import '../../services/receipt_service.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:collection/collection.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/category_model.dart';
 import '../models/cart_item_model.dart';
 
@@ -1219,10 +1221,26 @@ class _ServedOrderDetailScreenState extends State<ServedOrderDetailScreen> {
       context: context,
       builder: (context) => PaymentDialog(
         totalAmount: double.parse(_orderDetail!.grandTotal.toString()),
-        onPayment: (amountReceived, paymentMethodsData, covers, discountAmount,
-            discountPercentage) async {
-          await _processPayment(amountReceived, paymentMethodsData, covers,
-              discountAmount, discountPercentage);
+        onPayment: (amountReceived,
+            paymentMethodsData,
+            covers,
+            discountAmount,
+            discountPercentage,
+            identificationType,
+            phoneOrTin,
+            customerName,
+            purchaseCode) async {
+          await _processPayment(
+            amountReceived,
+            paymentMethodsData,
+            covers,
+            discountAmount,
+            discountPercentage,
+            identificationType,
+            phoneOrTin,
+            customerName,
+            purchaseCode,
+          );
         },
       ),
     );
@@ -1234,6 +1252,10 @@ class _ServedOrderDetailScreenState extends State<ServedOrderDetailScreen> {
     String covers,
     double discountAmount,
     double discountPercentage,
+    String identificationType,
+    String phoneOrTin,
+    String customerName,
+    String purchaseCode,
   ) async {
     try {
       showDialog(
@@ -1250,25 +1272,32 @@ class _ServedOrderDetailScreenState extends State<ServedOrderDetailScreen> {
         ),
       );
 
-      // Create request body directly to include both discount amount and percentage
+      // Get current user for cashier ID
+      final currentUser = await AuthService.getCurrentUser();
+
+      // Calculate change amount
+      double totalAmount = double.parse(_orderDetail!.grandTotal.toString());
+      double changeAmount = amountReceived - (totalAmount - discountAmount);
+
+      // Build request body with new structure
       final Map<String, dynamic> requestBody = {
         'orderId': _orderDetail!.id,
-        'totalAmount': double.parse(_orderDetail!.total.toString()),
+        'totalAmount': totalAmount,
         'amountReceived': amountReceived,
+        'changeAmount': changeAmount,
+        'paymentNotes': covers,
+        'discount': discountAmount,
         'paymentMethods': paymentMethodsData,
+        'custNm': customerName,
+        'custPhone': identificationType == 'phone' ? phoneOrTin : null,
+        'custTin': identificationType == 'tin' ? phoneOrTin : null,
+        'prcOrdCd': purchaseCode.isNotEmpty ? purchaseCode : null,
+        'client_name': customerName,
+        'client_id': null,
+        'depositId': null,
       };
 
-      // Add optional params if provided
-      if (covers.isNotEmpty) {
-        requestBody['covers'] = covers;
-      }
-
-      if (discountPercentage > 0) {
-        requestBody['discountValue'] =
-            discountPercentage; // Percentage value (e.g., 10 for 10%)
-        requestBody['discount'] = discountAmount; // Absolute amount value
-      } // Get current user for cashier ID
-      final currentUser = await AuthService.getCurrentUser();
+      // Add cashier ID if available
       if (currentUser != null) {
         requestBody['cashierId'] = currentUser.id;
       }
@@ -1292,6 +1321,14 @@ class _ServedOrderDetailScreenState extends State<ServedOrderDetailScreen> {
         Navigator.of(context).pop(); // Close loading dialog
 
         if (success) {
+          final ebmData = responseData['ebm'];
+          final ebmReceiptLink = ebmData is Map
+              ? (ebmData['data'] is Map
+                      ? ebmData['data']['receipt_link']
+                      : ebmData['receipt_link'])
+                  ?.toString()
+              : null;
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Payment recorded successfully'),
@@ -1303,31 +1340,86 @@ class _ServedOrderDetailScreenState extends State<ServedOrderDetailScreen> {
           await _fetchCompletedOrderDetail();
           widget.onOrderUpdated();
 
-          // Auto-print receipt after successful payment
+          // Auto-print bill receipt to local printer after successful payment
+          bool billPrintSuccess = false;
           if (_orderDetail != null) {
             try {
-              await ReceiptService.printReceipt(_orderDetail!);
+              debugPrint('Auto-printing bill receipt to local printer...');
+              await BillReceiptServices.printReceipt(_orderDetail!);
+              billPrintSuccess = true;
+              debugPrint('Bill receipt printed successfully');
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Receipt sent to printer automatically'),
-                    backgroundColor: Colors.blue,
+                    content: Text('Bill receipt sent to Local printer'),
+                    backgroundColor: Colors.green,
                     duration: Duration(seconds: 2),
                   ),
                 );
               }
             } catch (e) {
+              debugPrint('Bill receipt print failed: $e');
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content:
-                        Text('Payment successful but receipt print failed: $e'),
+                    content: Text('Bill print failed: $e'),
+                    backgroundColor: Colors.orange,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
+            }
+          }
+
+          // Open EBM receipt link in browser after bill print attempt
+          if (ebmReceiptLink != null && ebmReceiptLink.isNotEmpty) {
+            try {
+              debugPrint('Opening EBM receipt in browser: $ebmReceiptLink');
+              final uri = Uri.parse(ebmReceiptLink);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text('EBM receipt opened in browser for printing'),
+                      backgroundColor: Colors.blue,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              } else {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content:
+                          Text('Cannot open receipt link: $ebmReceiptLink'),
+                      backgroundColor: Colors.orange,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to open EBM receipt: $e'),
                     backgroundColor: Colors.orange,
                     duration: const Duration(seconds: 3),
                   ),
                 );
               }
             }
+          } else if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'Payment recorded, but no EBM receipt link was returned'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 3),
+              ),
+            );
           }
         } else {
           // Show error message from API
@@ -2057,7 +2149,6 @@ class _ServedOrderDetailScreenState extends State<ServedOrderDetailScreen> {
     if (_errorMessage != null) {
       return Center(
         child: SingleChildScrollView(
-          controller: _scrollController,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

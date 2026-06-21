@@ -31,6 +31,7 @@ class User {
   final String? email; // Make email nullable
   final String role;
   final int dashboardAccess; // 1 = Cashier, 2 = Waiter
+  final int ebmAllowed;
   final String? companyName;
   final String? location;
   final String? telephone;
@@ -44,6 +45,7 @@ class User {
     this.email,
     required this.role,
     this.dashboardAccess = 1,
+    this.ebmAllowed = 0,
     this.companyName,
     this.location,
     this.telephone,
@@ -62,6 +64,7 @@ class User {
       role: json['role'],
       dashboardAccess:
           int.tryParse(json['dashboard_access']?.toString() ?? '1') ?? 1,
+      ebmAllowed: int.tryParse(json['ebm_allowed']?.toString() ?? '0') ?? 0,
       companyName: json['company name']?.toString(),
       location: json['location']?.toString(),
       telephone: json['telephone']?.toString(),
@@ -82,6 +85,7 @@ class User {
       'email': email ?? '',
       'role': role,
       'dashboard_access': dashboardAccess,
+      'ebm_allowed': ebmAllowed,
       'company name': companyName ?? '',
       'location': location ?? '',
       'telephone': telephone ?? '',

@@ -503,9 +503,11 @@ class _MakeNewOrderScreenState extends State<MakeNewOrderScreen> {
       return;
     }
 
-    // Check if all cart items have prices (specifications selected)
-    bool hasItemsWithoutPrice = _cartItems.any((item) => item.price <= 0);
-    if (hasItemsWithoutPrice) {
+    // Check if all cart items have a valid specification selected
+    bool hasItemsWithoutSpec = _cartItems.any(
+      (item) => item.specificationId == null || item.specificationId! <= 0,
+    );
+    if (hasItemsWithoutSpec) {
       _showErrorSnackBar(
           'Some items do not have specifications selected. Please select specifications for all items.');
       return;
