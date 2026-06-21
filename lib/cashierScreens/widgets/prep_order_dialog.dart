@@ -20,11 +20,18 @@ class PrepOrderDialog extends StatefulWidget {
 
 class _PrepOrderDialogState extends State<PrepOrderDialog> {
   late int _selectedPrepOrder;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _selectedPrepOrder = widget.cartItem.prepOrder ?? 0;
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -70,16 +77,26 @@ class _PrepOrderDialogState extends State<PrepOrderDialog> {
             ),
             const SizedBox(height: 24),
 
-            // Cource order options - now dynamic
-            Column(
-              children: [
-                // Always include "No specific order" option
-                _buildPrepOrderOption(0, 'No specific order'),
-
-                // Dynamically generate numbered options based on cart length
-                for (int i = 1; i <= widget.cartLength; i++)
-                  _buildPrepOrderOption(i, _getOrderText(i)),
-              ],
+            // Cource order options - scrollable when cart has many items
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 300),
+              child: Scrollbar(
+                controller: _scrollController,
+                thumbVisibility: true,
+                trackVisibility: true,
+                thickness: 20,
+                radius: const Radius.circular(6),
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  child: Column(
+                    children: [
+                      _buildPrepOrderOption(0, 'No specific order'),
+                      for (int i = 1; i <= widget.cartLength; i++)
+                        _buildPrepOrderOption(i, _getOrderText(i)),
+                    ],
+                  ),
+                ),
+              ),
             ),
 
             const SizedBox(height: 24),

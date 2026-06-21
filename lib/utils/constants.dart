@@ -11,11 +11,11 @@ class AppConfig {
 // }
 
 // Printer names - updated to match actual printer names
-class PrinterNames {
-  static const String kitchen = "KITCHEN";
-  static const String bar = "BAR";
-  static const String receipt = "Local";
-}
+// class PrinterNames {
+//   static const String kitchen = "KITCHEN";
+//   static const String bar = "BAR";
+//   static const String receipt = "Local";
+// }
 
 // class PrinterNames {
 //   static const String kitchen = "KITCHEN";
@@ -31,8 +31,8 @@ class PrinterNames {
 // }
 
 
-// class PrinterNames {
-//   static const String kitchen = "KITCHEN";
-//   static const String bar = "KozoPrive";
-//   static const String receipt = "KozoPrive";
-// }
+class PrinterNames {
+  static const String kitchen = "KITCHEN";
+  static const String bar = "KozoPrive";
+  static const String receipt = "KozoPrive";
+}
